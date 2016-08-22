@@ -1,13 +1,28 @@
 import {Component} from '@buggyorg/graphtools'
 import _ from 'lodash'
 import semver from 'semver'
+import mongoose from 'mongoose'
 
-export function importJSON (json) {
-  return _.cloneDeep(json)
+export function importJSON (db, json) {
+  return new Promise((resolve, reject) => {
+    mongoose.connection.db.dropDatabase((err) => {
+      if (err) {
+        reject(err)
+      } else {
+        resolve()
+      }
+    })
+  })
+  .then(() => Promise.all((json.Components || []).map((c) => addComponent(db, c))))
+  .then(() => Promise.all(_.map(json.meta || {}, (meta, component) => {
+    return Promise.all(_.map(meta, (values, key) => {
+      return Promise.all(values.map(({ value, version }) => setMetaInfo(db, component, version, key, value)))
+    }))
+  })))
 }
 
 export function components (db) {
-  return db.Components
+  return db.models.Component.find().exec()
 }
 
 const compQuery = (db, meta, version) => {
@@ -25,7 +40,7 @@ export function hasComponent (db, meta, version) {
 export function component (db, meta, version) {
   if (version) {
     return compQuery(db, meta, version).then((components) => {
-      return components.length > 0 ? components[0].toObject() : null
+      return components.length > 0 ? components[0].component : null
     })
   } else {
     return latestVersion(db, meta).then((version) => {
@@ -35,7 +50,7 @@ export function component (db, meta, version) {
 }
 
 export function componentVersions (db, meta) {
-  return compQuery(db, meta).then((components) => components.toObject().map((cmp) => cmp.version))
+  return compQuery(db, meta).then((components) => components.map((cmp) => cmp.version))
 }
 
 export function latestVersion (db, meta) {
@@ -49,7 +64,7 @@ export function addComponent (db, component) {
       version: component.version,
       component: component
     })
-    return comp.save().exec()
+    return comp.save()
   })
 }
 
@@ -66,7 +81,7 @@ export function setMetaInfo (db, meta, version, key, value) {
 export function metaInfos (db, meta, version) {
   return versionOrLatest(db, meta, version).then((version) =>
     db.models.MetaInfo.find({ meta }).exec().then((meta) =>
-      meta.toObject()
+      _.chain(meta)
         .groupBy('key')
         .toPairs()
         .map(([key, list]) => {
@@ -83,7 +98,7 @@ export function metaInfos (db, meta, version) {
 export function metaInfo (db, meta, version, key) {
   return versionOrLatest(db, meta, version).then((version) =>
     db.models.MetaInfo.find({ meta, key }).exec().then((meta) =>
-      meta.toObject()
+      _.chain(meta)
         .groupBy('key')
         .toPairs()
         .map(([key, list]) => {

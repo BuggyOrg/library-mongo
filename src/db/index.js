@@ -7,7 +7,11 @@ export default function (url) {
   return new Promise((resolve, reject) => {
     mongoose.connect(url)
     const db = mongoose.connection
-    db.on('error', (err) => reject(err))
-    db.once('open', () => resolve({ models }))
+    if (db.readyState === 1) { // connected
+      resolve({ models, mongoose })
+    } else {
+      db.on('error', (err) => reject(err))
+      db.once('open', () => resolve({ models, mongoose }))
+    }
   })
 }
