@@ -107,7 +107,7 @@ export function metaInfo (db, meta, version, key) {
         .reject(([key, list]) => list === undefined)
         .map(([key, elem]) => [key, elem.value])
         .fromPairs()
-        .value()[0]
+        .value()[key]
     )
   )
 }
