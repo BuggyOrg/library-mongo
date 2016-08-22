@@ -1,28 +1,28 @@
-import { Schema, Model } from 'mongoose'
+import mongoose from 'mongoose'
 
-const componentSchema = Schema({
+const componentSchema = mongoose.Schema({
   meta: String,
   version: String,
-  component: Schema.Types.Mixed
+  component: mongoose.Schema.Types.Mixed
 })
 componentSchema.index({ meta: 1, version: 1 }, { unique: true })
 
-export const Component = Model('Component', componentSchema)
+export const Component = mongoose.model('Component', componentSchema)
 
-const metaInfoSchema = Schema({
+const metaInfoSchema = mongoose.Schema({
   meta: String,
   version: String,
   key: String,
-  value: Schema.Types.Mixed
+  value: mongoose.Schema.Types.Mixed
 })
 metaInfoSchema.index({ meta: 1, version: 1, key: 1 }, { unique: true })
 
-export const MetaInfo = Model('MetaInfo', metaInfoSchema)
+export const MetaInfo = mongoose.model('MetaInfo', metaInfoSchema)
 
-const configSchema = Schema({
+const configSchema = mongoose.Schema({
   key: String,
-  value: Schema.Types.Mixed
+  value: mongoose.Schema.Types.Mixed
 })
 metaInfoSchema.index({ key: 1 }, { unique: true })
 
-export const Config = Model('Config', configSchema)
+export const Config = mongoose.model('Config', configSchema)
