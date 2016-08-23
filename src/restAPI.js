@@ -174,18 +174,21 @@ export function serve (db, port) {
   })
 
   app.get('/config/:key', (req, res) => {
-    const conf = DB.config(db, req.params.key)
-    if (conf == null) {
-      return res.sendStatus(404).end()
-    }
-    res.json(conf)
-    res.end()
+    DB.config(db, req.params.key)
+      .then((conf) => {
+        if (conf == null) {
+          return res.sendStatus(404).end()
+        }
+        res.json(conf).end()
+      })
+      .catch(logAndError(res))
   })
 
   app.post('/config/:key', (req, res) => {
     if (!req.body || !req.body.value) return res.sendStatus(400)
     DB.setConfig(db, req.params.key, req.body.value)
-    res.status(204).end()
+      .then(() => res.status(204).end())
+      .catch(logAndError(res))
   })
 
   if (port) {

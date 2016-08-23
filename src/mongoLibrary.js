@@ -19,6 +19,7 @@ export function importJSON (db, json) {
       return Promise.all(values.map(({ value, version }) => setMetaInfo(db, component, version, key, value)))
     }))
   })))
+  .then(() => Promise.all(_.map(json.config || {}, (value, key) => setConfig(db, key, value))))
 }
 
 export function components (db) {
@@ -113,7 +114,7 @@ export function metaInfo (db, meta, version, key) {
 }
 
 export function config (db, key) {
-  return db.models.Config.find({ key }).exec().then(({ value }) => value)
+  return db.models.Config.findOne({ key }).exec().then((x) => x ? x.value : null)
 }
 
 export function setConfig (db, key, value) {
