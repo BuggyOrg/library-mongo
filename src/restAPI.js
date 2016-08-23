@@ -34,8 +34,9 @@ export function serve (db, port) {
   })
 
   app.get('/export', (req, res) => {
-    res.json(db)
-    res.end()
+    DB.exportJSON(db)
+      .then((json) => res.json(json).end())
+      .catch(logAndError(res))
   })
 
   app.get('/components', (req, res) => {

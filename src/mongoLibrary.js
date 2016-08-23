@@ -22,6 +22,28 @@ export function importJSON (db, json) {
   .then(() => Promise.all(_.map(json.config || {}, (value, key) => setConfig(db, key, value))))
 }
 
+export function exportJSON (db) {
+  return Promise.all([
+    components(db),
+    db.models.MetaInfo.find().exec(),
+    db.models.Config.find().exec()
+  ])
+  .then(([components, meta, config]) => {
+    return {
+      Components: components.map((c) => c.component),
+      meta: _.chain(meta)
+             .groupBy('meta')
+             .mapValues((arr) => _.chain(arr)
+               .groupBy('key')
+               .mapValues((v) => v.map((w) => _.pick(w, ['value', 'version'])))
+               .value()
+             )
+             .value(),
+      config: _.fromPairs(config.map(({ key, value }) => [ key, value ]))
+    }
+  })
+}
+
 export function components (db) {
   return db.models.Component.find().exec()
 }
