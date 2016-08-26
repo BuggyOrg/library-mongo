@@ -6,7 +6,7 @@ library:
     - PORT=8818
     - NODE_ENV=production
     - MONGO_URL=mongodb://db:27017
-  depends_on:
-    - mongo
+  links:
+    - db
 db:
   image: mongo
