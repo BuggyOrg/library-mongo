@@ -25,7 +25,7 @@
     "yamljs": "^0.2.8"
   },
   "dependencies": {
-    "@buggyorg/graphtools": "BuggyOrg/graphtools#707149e66f53c5bcdf1c2652c460999fe58c961e",
+    "@buggyorg/graphtools": "^0.4.0-pre",
     "body-parser": "^1.15.2",
     "debug": "^2.2.0",
     "express": "^4.14.0",
