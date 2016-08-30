@@ -41,7 +41,7 @@ export function serve (db, port) {
 
   app.get('/components', (req, res) => {
     DB.components(db)
-      .then((components) => res.json(components.map((c) => c.meta)).end())
+      .then((components) => res.json(components.map((c) => Component.id(c))).end())
       .catch(logAndError(res))
   })
 
@@ -51,8 +51,8 @@ export function serve (db, port) {
       .catch(logAndError(res))
   })
 
-  app.get('/components/get/:meta', (req, res) => {
-    DB.component(db, req.params.meta)
+  app.get('/components/get/:componentId', (req, res) => {
+    DB.component(db, req.params.componentId)
       .then((component) => {
         if (component != null) {
           res.json(component).end()
@@ -63,8 +63,8 @@ export function serve (db, port) {
       .catch(logAndError(res))
   })
 
-  app.get('/components/get/:meta/version/:version', (req, res) => {
-    DB.component(db, req.params.meta, req.params.version)
+  app.get('/components/get/:componentId/version/:version', (req, res) => {
+    DB.component(db, req.params.componentId, req.params.version)
       .then((component) => {
         if (component != null) {
           res.json(component).end()
@@ -78,7 +78,7 @@ export function serve (db, port) {
   app.post('/components', (req, res) => {
     if (!req.body) return res.sendStatus(400)
     if (!Component.isValid(req.body)) return res.sendStatus(400)
-    DB.hasComponent(db, req.body.meta, req.body.version)
+    DB.hasComponent(db, req.body.componentId, req.body.version)
       .then((hasComponent) => {
         if (hasComponent) {
           res.status(400).end()
@@ -90,8 +90,8 @@ export function serve (db, port) {
       .catch(logAndError(res))
   })
 
-  app.get('/meta/:component', (req, res) => {
-    DB.metaInfos(db, req.params.component, null)
+  app.get('/meta/:componentId', (req, res) => {
+    DB.metaInfos(db, req.params.componentId, null)
       .then((metaInfo) => {
         if (metaInfo != null) {
           res.json(_.keys(metaInfo)).end()
@@ -102,8 +102,8 @@ export function serve (db, port) {
       .catch(logAndError(res))
   })
 
-  app.get('/meta/:component/:key', (req, res) => {
-    DB.metaInfos(db, req.params.component, null, req.params.key)
+  app.get('/meta/:componentId/:key', (req, res) => {
+    DB.metaInfos(db, req.params.componentId, null, req.params.key)
       .then((metaInfo) => {
         if (metaInfo != null) {
           res.json(metaInfo[req.params.key]).end()
@@ -114,12 +114,12 @@ export function serve (db, port) {
       .catch(logAndError(res))
   })
 
-  app.post('/meta/:component/:key', (req, res) => {
+  app.post('/meta/:componentId/:key', (req, res) => {
     if (!req.body || !req.body.value) return res.sendStatus(400)
-    DB.hasComponent(db, req.params.component)
+    DB.hasComponent(db, req.params.componentId)
       .then((hasComponent) => {
         if (hasComponent) {
-          return DB.setMetaInfo(db, req.params.component, null, req.params.key, req.body.value)
+          return DB.setMetaInfo(db, req.params.componentId, null, req.params.key, req.body.value)
             .then(() => res.status(204).end())
         } else {
           res.status(400).end()
@@ -128,11 +128,11 @@ export function serve (db, port) {
       .catch(logAndError(res))
   })
 
-  app.get('/meta/:component/version/:version', (req, res) => {
-    DB.hasComponent(db, req.params.component)
+  app.get('/meta/:componentId/version/:version', (req, res) => {
+    DB.hasComponent(db, req.params.componentId)
       .then((hasComponent) => {
         if (hasComponent) {
-          DB.metaInfos(db, req.params.component, req.params.version)
+          DB.metaInfos(db, req.params.componentId, req.params.version)
             .then((meta) => {
               res.json(_.keys(meta)).end()
             })
@@ -143,11 +143,11 @@ export function serve (db, port) {
       .catch(logAndError(res))
   })
 
-  app.get('/meta/:component/version/:version/:key', (req, res) => {
-    DB.hasComponent(db, req.params.component)
+  app.get('/meta/:componentId/version/:version/:key', (req, res) => {
+    DB.hasComponent(db, req.params.componentId)
       .then((hasComponent) => {
         if (hasComponent) {
-          DB.metaInfo(db, req.params.component, req.params.version, req.params.key)
+          DB.metaInfo(db, req.params.componentId, req.params.version, req.params.key)
             .then((meta) => {
               res.json(meta).end()
             })
@@ -158,12 +158,12 @@ export function serve (db, port) {
       .catch(logAndError(res))
   })
 
-  app.post('/meta/:component/version/:version/:key', (req, res) => {
+  app.post('/meta/:componentId/version/:version/:key', (req, res) => {
     if (!req.body || !req.body.value) return res.sendStatus(400)
-    DB.hasComponent(db, req.params.component)
+    DB.hasComponent(db, req.params.componentId)
       .then((hasComponent) => {
         if (hasComponent) {
-          DB.setMetaInfo(db, req.params.component, req.params.version, req.params.key, req.body.value)
+          DB.setMetaInfo(db, req.params.componentId, req.params.version, req.params.key, req.body.value)
             .then((meta) => {
               res.status(204).end()
             })

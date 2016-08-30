@@ -14,9 +14,9 @@ export function importJSON (db, json) {
     })
   })
   .then(() => Promise.all((json.Components || []).map((c) => addComponent(db, c))))
-  .then(() => Promise.all(_.map(json.meta || {}, (meta, component) => {
+  .then(() => Promise.all(_.map(json.meta || {}, (meta, componentId) => {
     return Promise.all(_.map(meta, (values, key) => {
-      return Promise.all(values.map(({ value, version }) => setMetaInfo(db, component, version, key, value)))
+      return Promise.all(values.map(({ value, version }) => setMetaInfo(db, componentId, version, key, value)))
     }))
   })))
   .then(() => Promise.all(_.map(json.config || {}, (value, key) => setConfig(db, key, value))))
@@ -48,42 +48,42 @@ export function components (db) {
   return db.models.Component.find().exec()
 }
 
-const compQuery = (db, meta, version) => {
+const compQuery = (db, componentId, version) => {
   if (!version) {
-    return db.models.Component.find({ meta }).exec()
+    return db.models.Component.find({ componentId }).exec()
   } else {
-    return db.models.Component.find({ meta, version: semver.clean(version) }).exec()
+    return db.models.Component.find({ componentId, version: semver.clean(version) }).exec()
   }
 }
 
-export function hasComponent (db, meta, version) {
-  return compQuery(db, meta, version).then((comp) => comp.length > 0)
+export function hasComponent (db, componentId, version) {
+  return compQuery(db, componentId, version).then((comp) => comp.length > 0)
 }
 
-export function component (db, meta, version) {
+export function component (db, componentId, version) {
   if (version) {
-    return compQuery(db, meta, version).then((components) => {
+    return compQuery(db, componentId, version).then((components) => {
       return components.length > 0 ? components[0].component : null
     })
   } else {
-    return latestVersion(db, meta).then((version) => {
-      return version ? component(db, meta, version) : null
+    return latestVersion(db, componentId).then((version) => {
+      return version ? component(db, componentId, version) : null
     })
   }
 }
 
-export function componentVersions (db, meta) {
-  return compQuery(db, meta).then((components) => components.map((cmp) => cmp.version))
+export function componentVersions (db, componentId) {
+  return compQuery(db, componentId).then((components) => components.map((cmp) => cmp.version))
 }
 
-export function latestVersion (db, meta) {
-  return componentVersions(db, meta).then((versions) => versions.sort(semver.rcompare)[0])
+export function latestVersion (db, componentId) {
+  return componentVersions(db, componentId).then((versions) => versions.sort(semver.rcompare)[0])
 }
 
 export function addComponent (db, component) {
   return hasComponent(db, Component.id(component), component.version).then((exists) => {
     const comp = new db.models.Component({
-      meta: Component.id(component),
+      componentId: Component.id(component),
       version: component.version,
       component: component
     })
@@ -91,19 +91,19 @@ export function addComponent (db, component) {
   })
 }
 
-function versionOrLatest (db, meta, version) {
-  return version ? Promise.resolve(version) : latestVersion(db, meta)
+function versionOrLatest (db, componentId, version) {
+  return version ? Promise.resolve(version) : latestVersion(db, componentId)
 }
 
-export function setMetaInfo (db, meta, version, key, value) {
-  return versionOrLatest(db, meta, version).then((version) =>
-    db.models.MetaInfo.findOneAndUpdate({ meta, version, key }, { meta, version, key, value }, { upsert: true }).exec()
+export function setMetaInfo (db, componentId, version, key, value) {
+  return versionOrLatest(db, componentId, version).then((version) =>
+    db.models.MetaInfo.findOneAndUpdate({ componentId, version, key }, { componentId, version, key, value }, { upsert: true }).exec()
   )
 }
 
-export function metaInfos (db, meta, version) {
-  return versionOrLatest(db, meta, version).then((version) =>
-    db.models.MetaInfo.find({ meta }).exec().then((meta) =>
+export function metaInfos (db, componentId, version) {
+  return versionOrLatest(db, componentId, version).then((version) =>
+    db.models.MetaInfo.find({ componentId }).exec().then((meta) =>
       _.chain(meta)
         .groupBy('key')
         .toPairs()
@@ -118,9 +118,9 @@ export function metaInfos (db, meta, version) {
   )
 }
 
-export function metaInfo (db, meta, version, key) {
-  return versionOrLatest(db, meta, version).then((version) =>
-    db.models.MetaInfo.find({ meta, key }).exec().then((meta) =>
+export function metaInfo (db, componentId, version, key) {
+  return versionOrLatest(db, componentId, version).then((version) =>
+    db.models.MetaInfo.find({ componentId, key }).exec().then((meta) =>
       _.chain(meta)
         .groupBy('key')
         .toPairs()
