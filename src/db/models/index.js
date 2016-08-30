@@ -23,6 +23,6 @@ const configSchema = mongoose.Schema({
   key: String,
   value: mongoose.Schema.Types.Mixed
 })
-metaInfoSchema.index({ key: 1 }, { unique: true })
+configSchema.index({ key: 1 }, { unique: true })
 
 export const Config = mongoose.model('Config', configSchema)
