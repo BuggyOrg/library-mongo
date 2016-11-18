@@ -1,4 +1,3 @@
-import {Component} from '@buggyorg/graphtools'
 import _ from 'lodash'
 import semver from 'semver'
 import mongoose from 'mongoose'
@@ -13,7 +12,7 @@ export function importJSON (db, json) {
       }
     })
   })
-  .then(() => Promise.all((json.Components || []).map((c) => addComponent(db, c))))
+  .then(() => Promise.all((json.components || []).map((c) => addComponent(db, c))))
   .then(() => Promise.all(_.map(json.meta || {}, (meta, componentId) => {
     return Promise.all(_.map(meta, (values, key) => {
       return Promise.all(values.map(({ value, version }) => setMetaInfo(db, componentId, version, key, value)))
@@ -30,7 +29,7 @@ export function exportJSON (db) {
   ])
   .then(([components, meta, config]) => {
     return {
-      Components: components.map((c) => c.component),
+      components: components.map((c) => c.component),
       meta: _.chain(meta)
              .groupBy('meta')
              .mapValues((arr) => _.chain(arr)
@@ -81,9 +80,9 @@ export function latestVersion (db, componentId) {
 }
 
 export function addComponent (db, component) {
-  return hasComponent(db, Component.id(component), component.version).then((exists) => {
+  return hasComponent(db, component.componentId, component.version).then((exists) => {
     const comp = new db.models.Component({
-      componentId: Component.id(component),
+      componentId: component.componentId,
       version: component.version,
       component: component
     })

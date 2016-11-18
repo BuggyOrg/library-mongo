@@ -1,9 +1,8 @@
-
 import express from 'express'
 import bodyParser from 'body-parser'
 import * as DB from './mongoLibrary'
 import debug from 'debug'
-import {Component} from '@buggyorg/graphtools'
+import { Component } from '@buggyorg/graphtools'
 import _ from 'lodash'
 
 var log = debug('library-mongo')
@@ -41,7 +40,7 @@ export function serve (db, port) {
 
   app.get('/components', (req, res) => {
     DB.components(db)
-      .then((components) => res.json(components.map((c) => Component.id(c))).end())
+      .then((components) => res.json(components.map((c) => c.componentId)).end())
       .catch(logAndError(res))
   })
 
