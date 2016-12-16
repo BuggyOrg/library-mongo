@@ -80,7 +80,7 @@ export function serve (db, port) {
     DB.hasComponent(db, req.body.componentId, req.body.version)
       .then((hasComponent) => {
         if (hasComponent) {
-          res.status(400).end()
+          res.status(409).end()
         } else {
           return DB.addComponent(db, req.body)
             .then(() => res.status(204).end())
